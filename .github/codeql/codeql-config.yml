@@ -1,0 +1,5 @@
+paths:
+  - .github/actions/compute-sha256
+
+paths-ignore:
+  - .github/actions/compute-sha256/node_modules
