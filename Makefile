@@ -1,7 +1,10 @@
 SHELL := /bin/bash
 OUTPUT_FORMAT = $(shell if [ "${GITHUB_ACTIONS}" == "true" ]; then echo "github"; else echo ""; fi)
+TEST_COVERAGE_PERCENTAGE=70
+COVERAGE_THRESHOLD_FILE=coveragethreshold.json
 
-.PHONY: help
+
+.PHONY: help coverage
 help: ## Shows all targets and help from the Makefile (this message).
 	@echo "slsa-github-generator Makefile"
 	@echo "Usage: make [COMMAND]"
@@ -30,6 +33,13 @@ unit-test: ## Runs all unit tests.
 	go mod vendor
 	go test -mod=vendor -v ./...
 
+coverage: unit-test  ## Runs all unit tests and generates a coverage report.
+	@echo "Ensuring the code coverage is met"
+	@go test -mod=vendor  -coverprofile=coverage ./... | THRESHOLD_FILE=$(COVERAGE_THRESHOLD_FILE) COVERAGE_PERCENTAGE=$(TEST_COVERAGE_PERCENTAGE) go run ./hack/codecoverage/main.go
+
+	@cd .github/actions/detect-workflow
+	@go mod vendor
+	@go test -mod=vendor -coverprofile=coverage ./... | THRESHOLD_FILE=$(COVERAGE_THRESHOLD_FILE)                  COVERAGE_PERCENTAGE=$(TEST_COVERAGE_PERCENTAGE) go run ./hack/codecoverage/main.go 
 
 ## Linters
 #####################################################################
